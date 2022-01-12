@@ -7,16 +7,30 @@
         xmlns:local="clr-namespace:WpfApp4"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Window.Resources>
+    <!--<Window.Resources>
         <local:WarehouseViewModel x:Key="MyViewModel"/>
     </Window.Resources>
+    DataContext="{StaticResource MyViewModel}" 
+                                 ItemsSource="{Binding WarehouseItems}"-->
     <Grid>
         <telerik:RadTreeListView x:Name="radTreeListView"
-                                 DataContext="{StaticResource MyViewModel}"  
-                                 ItemsSource="{Binding WarehouseItems}">
+                                 AutoGenerateColumns="False"
+                                 CanUserReorderColumns="False"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Visible"
+                                 ScrollViewer.VerticalScrollBarVisibility="Visible"
+                                 IsReadOnly="False"
+                                 CanUserDeleteRows="False"
+                                 HierarchyColumnIndex="0"
+                                 telerik:StyleManager.Theme="Office_Silver"
+                                 RowIndicatorVisibility="Collapsed"
+                                 >
             <telerik:RadTreeListView.ChildTableDefinitions>
-                <telerik:TreeListViewTableDefinition ItemsSource="{Binding Items}" />
+                <telerik:TreeListViewTableDefinition ItemsSource="{Binding ChildItems}" />
             </telerik:RadTreeListView.ChildTableDefinitions>
+            <telerik:RadTreeListView.Columns>
+                <telerik:GridViewDataColumn DataMemberBinding="{Binding CurrentData.Name}"  Header="名称" />
+                <telerik:GridViewDataColumn DataMemberBinding="{Binding CurrentData.Count}"  Header="数量" />
+            </telerik:RadTreeListView.Columns>
         </telerik:RadTreeListView>
     </Grid>
 </Window>

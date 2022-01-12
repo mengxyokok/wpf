@@ -20,133 +20,78 @@ using Telerik.Windows.Controls;
 namespace WpfApp4
 {
 
-    public class WarehouseItem : INotifyPropertyChanged
+    public class GridItem
     {
-        private string name;
-        private int count;
-        private ObservableCollection<WarehouseItem> items;
+        public string ParentName { get; set; }
+        public string Name { get; set; }
+        public int Count { get; set; }
 
-        public WarehouseItem(string name, int count)
+        public GridItem(string parentname, string name, int count = 2)
         {
+            this.ParentName = parentname;
             this.Name = name;
             this.Count = count;
-            this.Items = new ObservableCollection<WarehouseItem>();
         }
-        public string Name
-        {
-            get
-            {
-                return this.name;
-            }
-            set
-            {
-                if (value != this.name)
-                {
-                    this.name = value;
-                    this.OnPropertyChanged("Name");
-                }
-            }
-        }
-        public ObservableCollection<WarehouseItem> Items
-        {
-            get
-            {
-                return this.items;
-            }
-            set
-            {
-                if (value != this.items)
-                {
-                    this.items = value;
-                    this.OnPropertyChanged("Items");
-                }
-            }
-        }
-        public int Count
-        {
-            get
-            {
-                return this.count;
-            }
-            set
-            {
-                if (value != this.count)
-                {
-                    this.count = value;
-                    this.OnPropertyChanged("Count");
-                }
-            }
-        }
-
-        protected virtual void OnPropertyChanged(PropertyChangedEventArgs args)
-        {
-            PropertyChangedEventHandler handler = this.PropertyChanged;
-            if (handler != null)
-            {
-                handler(this, args);
-            }
-        }
-
-        private void OnPropertyChanged(string propertyName)
-        {
-            this.OnPropertyChanged(new PropertyChangedEventArgs(propertyName));
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
     }
 
-    public class WarehouseService
+    public class NodeItem
     {
-        public static ObservableCollection<WarehouseItem> GetWarehouseData()
+        public GridItem CurrentData { get; set; }
+        public List<NodeItem> ChildItems { get; set; }
+
+
+        public NodeItem(GridItem data)
         {
-            ObservableCollection<WarehouseItem> data = new ObservableCollection<WarehouseItem>();
-            WarehouseItem drinks = new WarehouseItem("Drinks", 35);
-            drinks.Items.Add(new WarehouseItem("Water", 10));
-            WarehouseItem tea = new WarehouseItem("Tea", 20);
-            tea.Items.Add(new WarehouseItem("Black", 10));
-            tea.Items.Add(new WarehouseItem("Green", 10));
-            drinks.Items.Add(tea);
-            drinks.Items.Add(new WarehouseItem("Coffee", 5));
-            data.Add(drinks);
-            WarehouseItem vegetables = new WarehouseItem("Vegeatbles", 75);
-            vegetables.Items.Add(new WarehouseItem("Tomato", 40));
-            vegetables.Items.Add(new WarehouseItem("Carrot", 25));
-            vegetables.Items.Add(new WarehouseItem("Onion", 10));
-            data.Add(vegetables);
-            WarehouseItem fruits = new WarehouseItem("Fruits", 55);
-            fruits.Items.Add(new WarehouseItem("Cherry", 30));
-            fruits.Items.Add(new WarehouseItem("Apple", 20));
-            fruits.Items.Add(new WarehouseItem("Melon", 5));
-            data.Add(fruits);
-            return data;
+            this.CurrentData = data;
+            this.ChildItems = new List<NodeItem>();
         }
     }
-
-    public class WarehouseViewModel : ViewModelBase
-    {
-        private ObservableCollection<WarehouseItem> warehouseItems;
-
-        public ObservableCollection<WarehouseItem> WarehouseItems
-        {
-            get
-            {
-                if (this.warehouseItems == null)
-                {
-                    this.warehouseItems = WarehouseService.GetWarehouseData();
-                }
-
-                return this.warehouseItems;
-            }
-        }
-    }
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
+        //递归方法
+        List<GridItem> items = new List<GridItem>();
+        void AddChild(NodeItem currentItem)
+        {
+            var filterList = items.Where(x => x.ParentName == currentItem.CurrentData.Name).ToList();
+
+            foreach (var tt in filterList)
+            {
+                var childItem = new NodeItem(tt);
+                currentItem.ChildItems.Add(childItem);
+                var childrenList = items.Where(x => x.ParentName == tt.Name).ToList();
+                if (childrenList.Count > 0)
+                {
+                    AddChild(childItem);
+                }
+            }
+        }
         public MainWindow()
         {
             InitializeComponent();
+            //List<NodeItem> data = new List<NodeItem>();
+            //NodeItem item1 = new NodeItem("1", 12); data.Add(item1);
+            //NodeItem item2 = new NodeItem("2", 12); data.Add(item2);
+            //NodeItem item3 = new NodeItem("3", 12); data.Add(item3);
+            //NodeItem item11 = new NodeItem("1.1", 12); item1.ChildItems.Add(item11);
+            //NodeItem item12 = new NodeItem("1.2", 12); item1.ChildItems.Add(item12);
+            //NodeItem item111 = new NodeItem("1.1.1", 12); item11.ChildItems.Add(item111);
+
+            items.Add(new GridItem("", "root"));
+            items.Add(new GridItem("1.1", "1.1.1"));
+            items.Add(new GridItem("root", "1"));
+            items.Add(new GridItem("root", "2"));
+            items.Add(new GridItem("root", "3"));
+            items.Add(new GridItem("1", "1.1"));
+            items.Add(new GridItem("1", "1.2"));
+
+            var rootData = items.First(x => x.Name == "root");
+            var rootItem = new NodeItem(rootData);
+            AddChild(rootItem);
+
+            radTreeListView.ItemsSource =  rootItem.ChildItems;
+            radTreeListView.AutoExpandItems = true; 
         }
+
+
     }
 }
